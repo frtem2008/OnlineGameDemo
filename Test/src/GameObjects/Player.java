@@ -42,7 +42,7 @@ public class Player extends GameObject implements Externalizable {
         this.w = w;
         this.h = h;
         this.color = color;
-        this.hitbox = new Rectangle((int) x, (int) y, (int)w, (int)h);
+        this.hitbox = new Rectangle((int) x, (int) y, (int) w, (int) h);
     }
 
     @Override
@@ -59,15 +59,14 @@ public class Player extends GameObject implements Externalizable {
                 '}';
     }
 
-    public void move(Collection<GameObject> gameObjects) {
-//        System.out.println("Moving: sx:" + speedX + ", sy: " + speedY);
-        x += speedX * 0.000001;
-        y += speedY * 0.000001;
+    public void move(double deltaTime, Collection<GameObject> gameObjects) {
+        x += speedX * deltaTime;
+        y += speedY * deltaTime;
     }
 
     public void draw(Graphics g) {
         g.setColor(color);
-        g.drawRect((int) x, (int) y, (int)w, (int)h);
+        g.drawRect((int) x, (int) y, (int) w, (int) h);
     }
 
     @Override

@@ -1,7 +1,5 @@
 package Online.MessagePayloadObjects;
 
-import GameObjects.Game;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;

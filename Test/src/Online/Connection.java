@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.Objects;
 
-
 public class Connection implements AutoCloseable {
     private final Socket socket;
     private final ObjectInputStream reader;
@@ -58,41 +57,6 @@ public class Connection implements AutoCloseable {
         return "Unable to get ip";
     }
 
-    /*public void writeLine(String msg) throws IOException {
-        if (!closed) {
-            writer.writeUTF(msg);
-            writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
-    }
-
-    public void writeLong(Long l) throws IOException {
-        if (!closed) {
-            writer.writeLong(l);
-            writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
-    }
-
-    public void writeBytes(byte[] bytes, int offset, int len) throws IOException {
-        if (!closed) {
-            writer.write(bytes, offset, len);
-            writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
-    }
-
-    public void writeObject(Serializable obj) throws IOException {
-        if (!closed) {
-            writer.writeObject(obj);
-            writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
-    }
-
-    public void writeObject(Externalizable obj) throws IOException {
-        if (!closed) {
-            obj.writeExternal(writer);
-            writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
-    }
-*/
     public void writeMessage(Message msg) throws IOException {
         if (!closed) {
             String header = msg.type.toString();
@@ -103,28 +67,6 @@ public class Connection implements AutoCloseable {
         } else throw new SocketException("Write failed: connection closed");
     }
 
-    /*public String readLine() throws IOException {
-        if (!closed) return reader.readUTF();
-        throw new SocketException("Read failed: connection closed");
-    }
-
-    public Long readLong() throws IOException {
-        if (!closed) return reader.readLong();
-        throw new SocketException("Read failed: connection closed");
-    }
-
-    public int readBytes(byte[] buf, int offset, int len) throws IOException {
-        if (!closed) return reader.read(buf, offset, len);
-        throw new SocketException("Read failed: connection closed");
-    }
-
-    public Object readObject() throws IOException, ClassNotFoundException {
-        if (!closed) {
-            return reader.readObject();
-        }
-        throw new SocketException("Read failed: connection closed");
-    }
-*/
     public Message readMessage() throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException {
         if (!closed) {
             Message msg = new Message();

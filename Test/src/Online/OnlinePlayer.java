@@ -26,10 +26,6 @@ public class OnlinePlayer implements AutoCloseable {
         this.clientThread = clientThread;
     }
 
-    public void move() {
-        player.move(null);
-    }
-
     public void sendSpeed() throws IOException {
         Message msg = new Message(MessageType.SPEED_XY, new PayloadSpeedXY(player.getSpeedX(), player.getSpeedY()));
         connection.writeMessage(msg);

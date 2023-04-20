@@ -1,10 +1,5 @@
 package Client;
 
-import Online.Connection;
-
-import java.io.IOException;
-import java.util.Scanner;
-
 public class Client {
     public static void main(String[] args) {
         /*try (Connection server = new Connection("127.0.0.1", 26780)) {

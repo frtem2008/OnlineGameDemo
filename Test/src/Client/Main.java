@@ -8,13 +8,13 @@ import Online.Connection;
 import Online.Message;
 import Online.MessagePayloadObjects.PayloadStringData;
 import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadLoginData;
-import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadSpeedXY;
 import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameData;
 import Online.MessageType;
 import Online.OnlinePlayer;
 import UserInput.Keyboard;
 import UserInput.Mouse;
 
+import Timer.Timer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferStrategy;
@@ -23,12 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Main {
     //клавиатура + мышь
@@ -44,6 +40,7 @@ public class Main {
     //для анимаций
     public static long frames = 0;
     //изображения
+    private Timer timer;
     private Game game = null;
     private OnlinePlayer player;
 
@@ -84,6 +81,7 @@ public class Main {
 
     //начало игры ()
     public void startDrawing(JFrame frame) {
+        timer = new Timer();
         new Thread(() -> {
             //подгружаем изображения и прогружаем игру
             loadImages();
@@ -109,7 +107,7 @@ public class Main {
             frame.setFocusTraversalKeysEnabled(false);
 
             //для стабилизации и ограничения фпс
-            long start, end, len;
+            double start, end, len;
             double frameLength;
 
             int innerX, innerY;
@@ -122,7 +120,7 @@ public class Main {
             //главный игровой цикл
             while (true) {
                 //время начала кадра
-                start = System.currentTimeMillis();
+                start = timer.getGlobalTimeMillis();
 
                 //обновление размера JFrame
                 frameSize = frame.getContentPane().getSize();
@@ -144,10 +142,7 @@ public class Main {
                 //frameImage.getGraphics().drawImage(BackGround, 0, 0, frame.getWidth(), frame.getHeight(), null);
 
                 //рисование на предварительном изображении
-                for (Player pl : game.players.values()) {
-                    pl.draw(frameImage.getGraphics());
-                }
-
+                game.draw(frameImage.getGraphics());
                 frameGraphics.setColor(Color.BLACK);
                 frameGraphics.fillRect(innerX, innerY, 1600, 900);
                 frameGraphics.drawImage(frameImage, 0, 0, null);
@@ -156,7 +151,6 @@ public class Main {
                 frameImage.getGraphics().dispose();
                 frameGraphics.dispose();
 
-
                 //показ буфера на холсте
                 bs.show();
 
@@ -164,11 +158,7 @@ public class Main {
                 if (keyboard.getF11()) {
                     while (keyboard.getF11()) {
                         keyboard.update();
-                        try {
-                            Thread.sleep(1);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Thread.yield();
                     }
 
                     frame.dispose();
@@ -193,9 +183,6 @@ public class Main {
                 }
 
                 if (keyboard.getH()) {
-                    /*for (Player p : game.players.values()) {
-                        System.out.println(p);
-                    }*/
                     Message gamedump = new Message(MessageType.INFO, new PayloadStringData("gamedump"));
                     try {
                         player.writeMessage(gamedump);
@@ -206,9 +193,10 @@ public class Main {
 
                 frames++;
                 keyboard.update();
+                timer.tick();
 
                 //замер времени, ушедшего на отрисовку кадра
-                end = System.currentTimeMillis();
+                end = timer.getGlobalTimeMillis();
                 len = end - start;
 
                 //стабилизация фпс
@@ -248,23 +236,23 @@ public class Main {
             try {
                 System.out.println("Entered speed sending mode:");
                 int speedSentCount = 0;
-                long lastUpdate = 0;
+                double lastUpdate = 0;
                 final long REQUEST_TIMEOUT = 10;
 
                 while (true) {
                     double sx, sy;
                     keyboard.update();
                     if (keyboard.getA()) {
-                        sx = -2;
+                        sx = -0.1;
                     } else if (keyboard.getD()) {
-                        sx = 2;
+                        sx = 0.1;
                     } else {
                         sx = 0;
                     }
                     if (keyboard.getW()) {
-                        sy = -2;
+                        sy = -0.1;
                     } else if (keyboard.getS()) {
-                        sy = 2;
+                        sy = 0.1;
                     } else {
                         sy = 0;
                     }
@@ -275,11 +263,10 @@ public class Main {
 
                     }
 
-                    if (System.currentTimeMillis() - lastUpdate > REQUEST_TIMEOUT) {
+                    if (timer.getGlobalTimeMillis() - lastUpdate > REQUEST_TIMEOUT) {
                         /* read client data */
-                        /* FORMAT: SPEED_XY$speedX$speedY */
                         // TODO: 20.04.2023 Priority queue for messages
-                        lastUpdate = System.currentTimeMillis();
+                        lastUpdate = timer.getGlobalTimeMillis();
                         handleMessage(messageQueue.take(), player);
                         //System.out.println(msg);
                     }
@@ -297,10 +284,10 @@ public class Main {
                 System.out.println("Server: sent invalid message with payload: " + msg.payload);
             }
             case ERROR -> {
-                throw new RuntimeException(((PayloadStringData)msg.payload).str);
+                throw new RuntimeException(((PayloadStringData) msg.payload).str);
             }
             case INFO -> {
-                System.out.println("Received info from server: " + ((PayloadStringData)msg.payload).str);
+                System.out.println("Received info from server: " + ((PayloadStringData) msg.payload).str);
             }
             case LOGIN_DATA -> {
                 player.writeMessage(Message.ErrorMessage("LOGIN DATA SENT!"));
@@ -312,8 +299,7 @@ public class Main {
             }
             case GAME_DATA -> {
                 PayloadGameData gameData = (PayloadGameData) msg.payload;
-                Game received = gameData.game;
-                game = received;
+                game = gameData.game;
                 /*System.out.println("Read a game from server: ");
                 if (game.players.size() == 0) {
                     System.out.println("GAME OF ZERO PLAYERS");
