@@ -1,0 +1,17 @@
+#logger properties
+colored_output=true
+
+#server properties
+server_port=26780
+
+#number of different threads used for server (0 - use all possible processors * server_cores_multiplier)
+server_max_threads=50
+server_cores_multiplier=20
+
+#game properties
+max_players=
+
+#read data validation properties
+admin_command_regex=A\$\d+\$.+\$.+
+client_command_regex=C\$\d+\$\d+\$.+
+message_command_regex=\$msg +\d+ +(\w[ \-=*$#]*)+
