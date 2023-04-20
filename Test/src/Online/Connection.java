@@ -1,22 +1,18 @@
 package Online;
 
-import GameObjects.Game;
-import Online.MessagePayloadObjects.MessagePayload;
+import Online.MessagePayloadObjects.PayloadFunctions;
+import Online.MessagePayloadObjects.PayloadTable;
 
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.*;
 import java.util.Objects;
 
 
 public class Connection implements AutoCloseable {
     private final Socket socket;
-    private final Object readLock = new Object();
-    private final Object writeLock = new Object();
     private final ObjectInputStream reader;
     private final ObjectOutputStream writer;
     public boolean closed;
@@ -100,12 +96,10 @@ public class Connection implements AutoCloseable {
     public void writeMessage(Message msg) throws IOException {
         if (!closed) {
             String header = msg.type.toString();
-            synchronized (writeLock) {
-                writer.writeUTF(header);
-                writer.flush();
-                msg.payload.writeExternal(writer);
-                writer.flush();
-            }
+            writer.writeUTF(header);
+            writer.flush();
+            msg.payload.writeExternal(writer);
+            writer.flush();
         } else throw new SocketException("Write failed: connection closed");
     }
 
@@ -131,38 +125,20 @@ public class Connection implements AutoCloseable {
         throw new SocketException("Read failed: connection closed");
     }
 */
-    public Message readMessage() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    public Message readMessage() throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException {
         if (!closed) {
             Message msg = new Message();
-            synchronized (readLock) {
-                String messageHeader = reader.readUTF();
-
-            /*
-            if (messageHeader.startsWith("MESSAGE:")) {
-                msg.type = MessageType.valueOf(messageHeader.substring("MESSAGE:".length()));
+            String messageHeader = reader.readUTF();
+            msg.type = MessageType.valueOf(messageHeader);
+            PayloadFunctions functions = PayloadTable.payloadFunctionsMap.get(msg.type.payload);
+            if (functions != null) {
+                msg.payload = functions.constructor().newInstance();
+                functions.readMethod().invoke(msg.payload, reader);
             } else {
-                throw new RuntimeException("Invalid message header: " + messageHeader);
-            }
-            */
-                msg.type = MessageType.valueOf(messageHeader);
-
-                Class<? extends MessagePayload> payloadClass = msg.type.payload;
-                Method readMethod = payloadClass.getDeclaredMethod("readExternal", ObjectInput.class);
-
-                msg.payload = payloadClass.getDeclaredConstructor().newInstance();
-                readMethod.invoke(msg.payload, reader);
+                throw new IllegalStateException("No payload functions associated with class: " + msg.type.payload);
             }
             return msg;
         } else throw new SocketException("Write failed: connection closed");
-    }
-
-    public Game readGame() throws IOException {
-        if (!closed) {
-            Game game = new Game();
-            game.readExternal(reader);
-            return game;
-        }
-        throw new SocketException("Read failed: connection closed");
     }
 
     @Override
