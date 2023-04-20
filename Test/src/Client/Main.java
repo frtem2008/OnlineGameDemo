@@ -29,7 +29,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Main {
     //клавиатура + мышь
     public static final Mouse mouse = new Mouse();
-    public static final Keyboard keyboard = new Keyboard();
+    public static final Keyboard keyboard = new Keyboard(10);
     //размер кастомного шрифта (на потом)
     private static final float FONTSIZE = 35f;
     //смещение камеры (положения игрока) относительно левого верхнего угла экрана
@@ -155,9 +155,8 @@ public class Main {
                 bs.show();
 
                 //разворот на полный экран
-                if (keyboard.getF11()) {
-                    while (keyboard.getF11()) {
-                        keyboard.update();
+                if (Keyboard.getF11()) {
+                    while (Keyboard.getF11()) {
                         Thread.yield();
                     }
 
@@ -177,12 +176,12 @@ public class Main {
                 }
 
                 //код для выхода из игры
-                if (keyboard.getQ()) {
+                if (Keyboard.getQ()) {
                     System.out.println("Выход");
                     System.exit(20);
                 }
 
-                if (keyboard.getH()) {
+                if (Keyboard.getH()) {
                     Message gamedump = new Message(MessageType.INFO, new PayloadStringData("gamedump"));
                     try {
                         player.writeMessage(gamedump);
@@ -192,8 +191,6 @@ public class Main {
                 }
 
                 frames++;
-                keyboard.update();
-                timer.tick();
 
                 //замер времени, ушедшего на отрисовку кадра
                 end = timer.getGlobalTimeMillis();
@@ -211,7 +208,7 @@ public class Main {
             }
         }).start();
 
-        ArrayBlockingQueue<Message> messageQueue = new ArrayBlockingQueue<>(50, true);
+        ArrayBlockingQueue<Message> messageQueue = new ArrayBlockingQueue<>(150, true);
 
         /* Server messages handle thread */
         new Thread(() -> {
@@ -241,17 +238,16 @@ public class Main {
 
                 while (true) {
                     double sx, sy;
-                    keyboard.update();
-                    if (keyboard.getA()) {
+                    if (Keyboard.getA()) {
                         sx = -0.1;
-                    } else if (keyboard.getD()) {
+                    } else if (Keyboard.getD()) {
                         sx = 0.1;
                     } else {
                         sx = 0;
                     }
-                    if (keyboard.getW()) {
+                    if (Keyboard.getW()) {
                         sy = -0.1;
-                    } else if (keyboard.getS()) {
+                    } else if (Keyboard.getS()) {
                         sy = 0.1;
                     } else {
                         sy = 0;
@@ -260,7 +256,6 @@ public class Main {
                         player.setSpeed(sx, sy);
                         player.sendSpeed();
                         System.out.println("Speed sent" + (speedSentCount++) + " times");
-
                     }
 
                     if (timer.getGlobalTimeMillis() - lastUpdate > REQUEST_TIMEOUT) {
@@ -268,8 +263,9 @@ public class Main {
                         // TODO: 20.04.2023 Priority queue for messages
                         lastUpdate = timer.getGlobalTimeMillis();
                         handleMessage(messageQueue.take(), player);
-                        //System.out.println(msg);
                     }
+                    //TIMER TICKS HERE, because main graphics thread blocks if player presses f11, graphics thread yields until key is released, so timer fails to tick and messages are not handled
+                    timer.tick();
                 }
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
@@ -300,12 +296,6 @@ public class Main {
             case GAME_DATA -> {
                 PayloadGameData gameData = (PayloadGameData) msg.payload;
                 game = gameData.game;
-                /*System.out.println("Read a game from server: ");
-                if (game.players.size() == 0) {
-                    System.out.println("GAME OF ZERO PLAYERS");
-                } else {
-                    game.players.values().forEach(System.out::println);
-                }*/
             }
         }
     }

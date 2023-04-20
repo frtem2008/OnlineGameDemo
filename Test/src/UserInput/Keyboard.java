@@ -2,423 +2,423 @@ package UserInput;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.Serializable;
 
-public class Keyboard implements KeyListener, Serializable {
-    public boolean active;
+public class Keyboard implements KeyListener {
+    private static final boolean[] keys = new boolean[66536];
+    private static boolean a;
+    private static boolean b;
+    private static boolean c;
+    private static boolean d;
+    private static boolean e;
+    private static boolean f;
+    private static boolean g;
+    private static boolean h;
+    private static boolean i;
+    private static boolean j;
+    private static boolean k;
+    private static boolean l;
+    private static boolean m;
+    private static boolean n;
+    private static boolean o;
+    private static boolean p;
+    private static boolean q;
+    private static boolean r;
+    private static boolean s;
+    private static boolean t;
+    private static boolean u;
+    private static boolean v;
+    private static boolean w;
+    private static boolean x;
+    private static boolean y;
+    private static boolean z;
 
-    public boolean[] keys = new boolean[66568];
-    //все клавиши
-    //переменные под каждую из них
-    private boolean a;
-    private boolean b;
-    private boolean c;
-    private boolean d;
-    private boolean e;
-    private boolean f;
-    private boolean g;
-    private boolean h;
-    private boolean i;
-    private boolean j;
-    private boolean k;
-    private boolean l;
-    private boolean m;
-    private boolean n;
-    private boolean o;
-    private boolean p;
-    private boolean q;
-    private boolean r;
-    private boolean s;
-    private boolean t;
-    private boolean u;
-    private boolean v;
-    private boolean w;
-    private boolean x;
-    private boolean y;
-    private boolean z;
+    private static boolean up;
+    private static boolean down;
+    private static boolean left;
+    private static boolean right;
 
-    private boolean up;
-    private boolean down;
-    private boolean left;
-    private boolean right;
+    private static boolean one;
+    private static boolean two;
+    private static boolean three;
+    private static boolean four;
+    private static boolean five;
+    private static boolean six;
+    private static boolean seven;
+    private static boolean eight;
+    private static boolean nine;
+    private static boolean zero;
 
-    private boolean one;
-    private boolean two;
-    private boolean three;
-    private boolean four;
-    private boolean five;
-    private boolean six;
-    private boolean seven;
-    private boolean eight;
-    private boolean nine;
-    private boolean zero;
+    private static boolean tab;
+    private static boolean shift;
+    private static boolean ctrl;
+    private static boolean esc;
+    private static boolean win;
+    private static boolean alt;
 
-    private boolean tab;
-    private boolean shift;
-    private boolean ctrl;
-    private boolean esc;
-    private boolean win;
-    private boolean alt;
+    private static boolean space;
 
-    private boolean space;
+    private static boolean scLock;
+    private static boolean capsLock;
+    private static boolean numLock;
 
-    private boolean scLock;
-    private boolean capsLock;
-    private boolean numLock;
+    private static boolean pauseBreak;
+    private static boolean printScr;
+    private static boolean insert;
+    private static boolean home;
+    private static boolean end;
+    private static boolean pgUp;
+    private static boolean pgDown;
+    private static boolean backSpace;
+    private static boolean del;
+    private static boolean plus;
+    private static boolean minus;
+    private static boolean star;
+    private static boolean bSlash;
+    private static boolean equals;
+    private static boolean dot;
+    private static boolean comma;
+    private static boolean f1;
+    private static boolean f2;
+    private static boolean f3;
+    private static boolean f4;
+    private static boolean f5;
+    private static boolean f6;
+    private static boolean f7;
+    private static boolean f8;
+    private static boolean f9;
+    private static boolean f10;
+    private static boolean f11;
+    private static boolean f12;
 
-    private boolean pauseBreak;
-    private boolean printScr;
-    private boolean insert;
-    private boolean home;
-    private boolean end;
-    private boolean pgUp;
-    private boolean pgDown;
-    private boolean backSpace;
-    private boolean del;
-    private boolean plus;
-    private boolean minus;
-    private boolean star;
-    private boolean bSlash;
-    private boolean equals;
-    private boolean dot;
-    private boolean comma;
-    private boolean f1;
-    private boolean f2;
-    private boolean f3;
-    private boolean f4;
-    private boolean f5;
-    private boolean f6;
-    private boolean f7;
-    private boolean f8;
-    private boolean f9;
-    private boolean f10;
-    private boolean f11;
-    private boolean f12;
-
-    public Keyboard() {
-
-    }
-
-    public Keyboard(boolean[] keys) {
-        this.keys = keys;
+    public Keyboard(int delayMillis) {
+        new Thread(() -> {
+            long lastUpdate = 0;
+            while (true) {
+                long millis = System.currentTimeMillis();
+                if (millis - lastUpdate > delayMillis) {
+                    lastUpdate = millis;
+                    update();
+                }
+            }
+        }).start();
     }
 
     //получение инфы о клавишах
 
-    public boolean getBackSpace() {
+    public static boolean getBackSpace() {
         return backSpace;
     }
 
-    public boolean getEsc() {
+    public static boolean getEsc() {
         return esc;
     }
 
-    public boolean getPrintScr() {
+    public static boolean getPrintScr() {
         return printScr;
     }
 
-    public boolean getScLock() {
+    public static boolean getScLock() {
         return scLock;
     }
 
-    public boolean getPauseBreak() {
+    public static boolean getPauseBreak() {
         return pauseBreak;
     }
 
-    public boolean getInsert() {
+    public static boolean getInsert() {
         return insert;
     }
 
-    public boolean getHome() {
+    public static boolean getHome() {
         return home;
     }
 
-    public boolean getEnd() {
+    public static boolean getEnd() {
         return end;
     }
 
-    public boolean getPgUp() {
+    public static boolean getPgUp() {
         return pgUp;
     }
 
-    public boolean getPgDown() {
+    public static boolean getPgDown() {
         return pgDown;
     }
 
-    public boolean getDel() {
+    public static boolean getDel() {
         return del;
     }
 
-    public boolean getNumLock() {
+    public static boolean getNumLock() {
         return numLock;
     }
 
-    public boolean getbSlash() {
+    public static boolean getbSlash() {
         return bSlash;
     }
 
-    public boolean getPlus() {
+    public static boolean getPlus() {
         return plus;
     }
 
-    public boolean getMinus() {
+    public static boolean getMinus() {
         return minus;
     }
 
-    public boolean getStar() {
+    public static boolean getStar() {
         return star;
     }
 
-    public boolean getEquals() {
+    public static boolean getEquals() {
         return equals;
     }
 
-    public boolean getCapsLock() {
+    public static boolean getCapsLock() {
         return capsLock;
     }
 
-    public boolean getWin() {
+    public static boolean getWin() {
         return win;
     }
 
-    public boolean getAlt() {
+    public static boolean getAlt() {
         return alt;
     }
 
-    public boolean getDot() {
+    public static boolean getDot() {
         return dot;
     }
 
-    public boolean getComma() {
+    public static boolean getComma() {
         return comma;
     }
 
-    public boolean getF1() {
+    public static boolean getF1() {
         return f1;
     }
 
-    public boolean getF2() {
+    public static boolean getF2() {
         return f2;
     }
 
-    public boolean getF3() {
+    public static boolean getF3() {
         return f3;
     }
 
-    public boolean getF4() {
+    public static boolean getF4() {
         return f4;
     }
 
-    public boolean getF5() {
+    public static boolean getF5() {
         return f5;
     }
 
-    public boolean getF6() {
+    public static boolean getF6() {
         return f6;
     }
 
-    public boolean getF7() {
+    public static boolean getF7() {
         return f7;
     }
 
-    public boolean getF8() {
+    public static boolean getF8() {
         return f8;
     }
 
-    public boolean getF9() {
+    public static boolean getF9() {
         return f9;
     }
 
-    public boolean getF10() {
+    public static boolean getF10() {
         return f10;
     }
 
-    public boolean getF11() {
+    public static boolean getF11() {
         return f11;
     }
 
-    public boolean getF12() {
+    public static boolean getF12() {
         return f12;
     }
 
-    public boolean getTab() {
+    public static boolean getTab() {
         return tab;
     }
 
-    public boolean getShift() {
+    public static boolean getShift() {
         return shift;
     }
 
-    public boolean getCtrl() {
+    public static boolean getCtrl() {
         return ctrl;
     }
 
-    public boolean getSpace() {
+    public static boolean getSpace() {
         return space;
     }
 
-    public boolean getUp() {
+    public static boolean getUp() {
         return up;
     }
 
-    public boolean getDown() {
+    public static boolean getDown() {
         return down;
     }
 
-    public boolean getLeft() {
+    public static boolean getLeft() {
         return left;
     }
 
-    public boolean getRight() {
+    public static boolean getRight() {
         return right;
     }
 
-    public boolean getOne() {
+    public static boolean getOne() {
         return one;
     }
 
-    public boolean getTwo() {
+    public static boolean getTwo() {
         return two;
     }
 
-    public boolean getThree() {
+    public static boolean getThree() {
         return three;
     }
 
-    public boolean getFour() {
+    public static boolean getFour() {
         return four;
     }
 
-    public boolean getFive() {
+    public static boolean getFive() {
         return five;
     }
 
-    public boolean getSix() {
+    public static boolean getSix() {
         return six;
     }
 
-    public boolean getSeven() {
+    public static boolean getSeven() {
         return seven;
     }
 
-    public boolean getEight() {
+    public static boolean getEight() {
         return eight;
     }
 
-    public boolean getNine() {
+    public static boolean getNine() {
         return nine;
     }
 
-    public boolean getZero() {
+    public static boolean getZero() {
         return zero;
     }
 
-    public boolean getA() {
+    public static boolean getA() {
         return a;
     }
 
-    public boolean getB() {
+    public static boolean getB() {
         return b;
     }
 
-    public boolean getC() {
+    public static boolean getC() {
         return c;
     }
 
-    public boolean getD() {
+    public static boolean getD() {
         return d;
     }
 
-    public boolean getE() {
+    public static boolean getE() {
         return e;
     }
 
-    public boolean getF() {
+    public static boolean getF() {
         return f;
     }
 
-    public boolean getG() {
+    public static boolean getG() {
         return g;
     }
 
-    public boolean getH() {
+    public static boolean getH() {
         return h;
     }
 
-    public boolean getI() {
+    public static boolean getI() {
         return i;
     }
 
-    public boolean getJ() {
+    public static boolean getJ() {
         return j;
     }
 
-    public boolean getK() {
+    public static boolean getK() {
         return k;
     }
 
-    public boolean getL() {
+    public static boolean getL() {
         return l;
     }
 
-    public boolean getM() {
+    public static boolean getM() {
         return m;
     }
 
-    public boolean getN() {
+    public static boolean getN() {
         return n;
     }
 
-    public boolean getO() {
+    public static boolean getO() {
         return o;
     }
 
-    public boolean getP() {
+    public static boolean getP() {
         return p;
     }
 
-    public boolean getQ() {
+    public static boolean getQ() {
         return q;
     }
 
-    public boolean getR() {
+    public static boolean getR() {
         return r;
     }
 
-    public boolean getS() {
+    public static boolean getS() {
         return s;
     }
 
-    public boolean getT() {
+    public static boolean getT() {
         return t;
     }
 
-    public boolean getU() {
+    public static boolean getU() {
         return u;
     }
 
-    public boolean getV() {
+    public static boolean getV() {
         return v;
     }
 
-    public boolean getW() {
+    public static boolean getW() {
         return w;
     }
 
-    public boolean getX() {
+    public static boolean getX() {
         return x;
     }
 
-    public boolean getY() {
+    public static boolean getY() {
         return y;
     }
 
-    public boolean getZ() {
+    public static boolean getZ() {
         return z;
     }
 
     //обновление клавиатуры
-    public void update() {
+    private void update() {
         a = keys[KeyEvent.VK_A];
         b = keys[KeyEvent.VK_B];
         c = keys[KeyEvent.VK_C];
@@ -511,18 +511,10 @@ public class Keyboard implements KeyListener, Serializable {
     }
 
     public void keyPressed(KeyEvent event) {
-        if (!active) {
-            active = true;
-            //System.out.println("On");
-        }
         keys[event.getKeyCode()] = true;
     }
 
     public void keyReleased(KeyEvent event) {
-        if (active) {
-            active = false;
-            //System.out.println("Off");
-        }
         keys[event.getKeyCode()] = false;
     }
 
