@@ -8,14 +8,14 @@ import java.lang.reflect.InvocationTargetException;
 
 public class OnlinePlayer implements AutoCloseable {
     private final Connection connection;
-    public final Thread clientThread;
+    public final Thread playerThread;
     public final String nickname;
     public Player player;
     public boolean moves = false;
     public double oldX = 0, oldY = 0;
 
     public OnlinePlayer(Connection connection) {
-        this.clientThread = null;
+        this.playerThread = null;
         this.nickname = "Invalid player @" + Thread.currentThread().getName() + ")";
         this.connection = connection;
     }
@@ -23,7 +23,7 @@ public class OnlinePlayer implements AutoCloseable {
     public OnlinePlayer(Connection connection, String nickname, Thread clientThread) {
         this.connection = connection;
         this.nickname = nickname;
-        this.clientThread = clientThread;
+        this.playerThread = clientThread;
     }
 
     public void sendSpeed() throws IOException {
@@ -47,8 +47,15 @@ public class OnlinePlayer implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        if (clientThread != null)
-            clientThread.interrupt();
+        if (playerThread != null)
+            playerThread.interrupt();
         connection.close();
+    }
+
+    @Override
+    public String toString() {
+        return "OnlinePlayer{" +
+                ", nickname='" + nickname + '\'' +
+                '}';
     }
 }

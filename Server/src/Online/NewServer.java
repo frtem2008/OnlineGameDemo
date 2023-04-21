@@ -98,7 +98,7 @@ public class NewServer {
         logger = Logger.getInstance();
         if (useColorText) logger.enableColoredText();
         else logger.disableColoredText();
-        logger.addPrintColor("Connection", OutputColor.GREEN);
+        logger.addPrintColor("ConnectionOld", OutputColor.GREEN);
         logger.addPrintColor("Disconnection", OutputColor.CYAN);
         logger.addPrintColor("Registration", OutputColor.YELLOW);
         logger.addPrintColor("File creation", OutputColor.BLUE);
@@ -206,7 +206,7 @@ public class NewServer {
             writeOnOff("On");
 
             while (!exec.isShutdown()) {
-                Connection connection = new Connection(server);
+                ConnectionOld connection = new ConnectionOld(server);
                 Runnable clientThread;
 
                 clientThread = () -> {
@@ -222,10 +222,10 @@ public class NewServer {
 
                             if (player.isAdmin()) {
                                 adminIds.add(player.id);
-                                logger.print("Admin connected: ip address is " + connection.getIp() + ", unique id is " + player.id, "Connection");
+                                logger.print("Admin connected: ip address is " + connection.getIp() + ", unique id is " + player.id, "ConnectionOld");
                             } else {
                                 clientIds.add(player.id);
-                                logger.print("Player connected: ip address is " + connection.getIp() + ", unique id is " + player.id, "Connection");
+                                logger.print("Player connected: ip address is " + connection.getIp() + ", unique id is " + player.id, "ConnectionOld");
                             }
                             writeConnection(player.id, true);
 
@@ -363,7 +363,7 @@ public class NewServer {
 
     }
 
-    private Player login(Connection connection) {
+    private Player login(ConnectionOld connection) {
         Player res = new Player(connection);
         boolean loginFailed = true;
         ClientRoot root = null;
@@ -442,9 +442,9 @@ public class NewServer {
                         case "$shutdown" -> stopServer();
                         case "$connections" -> {
                             if (connectedPlayers.size() > 0) {
-                                logger.print("All active connections: ", "Connection");
+                                logger.print("All active connections: ", "ConnectionOld");
                                 connectedPlayers.forEach(player -> logger.print(player.toString(), "Registration"));
-                                logger.print(connectedPlayers.size() + " connections in total\n", "Connection");
+                                logger.print(connectedPlayers.size() + " connections in total\n", "ConnectionOld");
                             } else logger.print("No active connections", "Disconnection");
                         }
                         case "$idlist" -> {
@@ -481,7 +481,7 @@ public class NewServer {
                                     } else
                                         logger.print("Player with id " + idToDisconnect + " isn't connected", "Wrong data");
                                     if (connectedPlayers.size() > 0)
-                                        logger.print(connectedPlayers.size() + " connectedPlayers in total\n", "Connection");
+                                        logger.print(connectedPlayers.size() + " connectedPlayers in total\n", "ConnectionOld");
                                     else logger.print("No active connectedPlayers", "Disconnection");
                                 } else {
                                     if (connectedPlayers.size() != 0) {

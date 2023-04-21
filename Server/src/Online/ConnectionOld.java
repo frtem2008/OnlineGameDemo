@@ -1,14 +1,22 @@
-import java.io.*;
+package Online;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.*;
 import java.util.Objects;
 
-public class Connection implements AutoCloseable {
+
+public class ConnectionOld implements AutoCloseable {
     private final Socket socket;
+
     private final DataInputStream reader;
+
     private final DataOutputStream writer;
+
     public boolean closed;
 
-    public Connection(String ip, int port) {
+    public ConnectionOld(String ip, int port) {
         try {
             this.socket = new Socket(ip, port);
             this.reader = createReader();
@@ -19,7 +27,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    public Connection(ServerSocket server) {
+    public ConnectionOld(ServerSocket server) {
         try {
             this.socket = server.accept();
             this.reader = createReader();
@@ -47,54 +55,48 @@ public class Connection implements AutoCloseable {
         return "Unable to get ip";
     }
 
+
     public void writeLine(String msg) throws IOException {
         if (!closed) {
             writer.writeUTF(msg);
             writer.flush();
-        } else
-            throw new SocketException("Write failed: connection closed");
+        } else throw new SocketException("Write failed: connection closed");
     }
 
     public void writeLong(Long l) throws IOException {
         if (!closed) {
             writer.writeLong(l);
             writer.flush();
-        } else
-            throw new SocketException("Write failed: connection closed");
+        } else throw new SocketException("Write failed: connection closed");
     }
 
     public void writeBytes(byte[] bytes, int offset, int len) throws IOException {
         if (!closed) {
             writer.write(bytes, offset, len);
             writer.flush();
-        } else
-            throw new SocketException("Write failed: connection closed");
+        } else throw new SocketException("Write failed: connection closed");
     }
 
     public String readLine() throws IOException {
-        if (!closed)
-            return reader.readUTF();
+        if (!closed) return reader.readUTF();
         throw new SocketException("Read failed: connection closed");
     }
 
     public Long readLong() throws IOException {
-        if (!closed)
-            return reader.readLong();
+        if (!closed) return reader.readLong();
         throw new SocketException("Read failed: connection closed");
     }
 
     public int readBytes(byte[] buf, int offset, int len) throws IOException {
-        if (!closed)
-            return reader.read(buf, offset, len);
+        if (!closed) return reader.read(buf, offset, len);
         throw new SocketException("Read failed: connection closed");
     }
 
     @Override
     public String toString() {
-        return "Connection{" +
-                "ip=" + getIp() +
-                '}';
+        return "ConnectionOld{" + "ip=" + getIp() + '}';
     }
+
 
     @Override
     public void close() throws IOException {
@@ -106,18 +108,16 @@ public class Connection implements AutoCloseable {
         }
     }
 
+
     @Override
     public int hashCode() {
         return Objects.hash(socket, reader, writer, closed);
     }
 
     public boolean equals(Object x) {
-        if (x == null || x.getClass() != this.getClass())
-            return false;
-        if (x == this)
-            return true;
-        Connection cur = (Connection) x;
-        return cur.socket == this.socket &&
-                cur.getIp().equals(this.getIp());
+        if (x == null || x.getClass() != this.getClass()) return false;
+        if (x == this) return true;
+        ConnectionOld cur = (ConnectionOld) x;
+        return cur.socket == this.socket && cur.getIp().equals(this.getIp());
     }
 }

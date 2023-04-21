@@ -7,9 +7,9 @@ public class Player implements Closeable {
     public final ClientRoot root;
     public final Thread clientThread;
     public ClientDataState dataState;
-    private final Connection connection;
+    private final ConnectionOld connection;
 
-    public Player(Connection connection) {
+    public Player(ConnectionOld connection) {
         this.clientThread = null;
         this.connection = connection;
         this.root = ClientRoot.UNAUTHORIZED;
@@ -17,7 +17,7 @@ public class Player implements Closeable {
         this.dataState = ClientDataState.STRING_DATA;
     }
 
-    public Player(Connection connection, int id, ClientRoot root, Thread clientThread) {
+    public Player(ConnectionOld connection, int id, ClientRoot root, Thread clientThread) {
         this.connection = connection;
         this.id = id;
         this.root = root;

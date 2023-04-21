@@ -32,78 +32,116 @@ public class Server {
             System.out.println("Waiting for clients to connect");
 
             game = new Game();
-            new Thread(() -> {
+            Thread gameSendingThread = new Thread(() -> {
                 double lastUpdate = 0;
                 final long GAME_SEND_TIMEOUT = 30;
                 int gameSentTimes = 0;
-                try {
-                    while (true) {
+                OnlinePlayer current = null;
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
                         if (timer.getGlobalTimeMillis() - lastUpdate > GAME_SEND_TIMEOUT) {
                             lastUpdate = timer.getGlobalTimeMillis();
                             Message gameMessage = new Message(MessageType.GAME_DATA, new PayloadGameData(game));
-                            // TODO: 19.04.2023 Normal client thread interruption!
                             for (OnlinePlayer pl : connectedPlayers) {
+                                current = pl;
                                 pl.writeMessage(gameMessage);
                             }
-                            if (++gameSentTimes % 100 == 0) {
+                            if (gameSentTimes % 100 == 0) {
                                 System.out.println("Game sent " + gameSentTimes + " times");
                                 System.out.println("Server tps: " + timer.getTps());
                             }
+                            gameSentTimes++;
                         } else {
                             timer.tick();
                             game.tick(timer.getGlobalDeltaTimeMillis());
                         }
+                    } catch (IOException e) {
+                        disconnectPlayer(current);
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }).start();
+            }, "Game updating and sending thread");
+            gameSendingThread.start();
 
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 Connection client = new Connection(server);
-
-                new Thread(() -> {
+                Thread clientThread = new Thread(() -> {
                     System.out.println("OnlinePlayer connected: " + client.getIp());
                     System.out.println("Waiting for data");
-                    try {
-                        communicationLoop(client);
-                    } catch (InterruptedException e) {
-                        /* Disconnect a player */
-                        Thread.currentThread().interrupt();
-                    } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
-                             InstantiationException | IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
+                    communicationLoop(client);
+                }, client.getIp() + " connection");
+                clientThread.start();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-                }).start();
+    private static OnlinePlayer login(Connection unauthorized) throws RuntimeException {
+        try {
+            Message msg = unauthorized.readMessage();
+            if (msg.type != MessageType.LOGIN_DATA) {
+                unauthorized.writeMessage(Message.ErrorMessage("LOGIN NEEDED!"));
+                System.out.println("OnlinePlayer: " + unauthorized.getIp() + " failed to log in: different message type: " + msg.type);
+                return null;
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            PayloadLoginData loginData = (PayloadLoginData) msg.payload;
+            String nickname = loginData.nickname;
+            double x = loginData.x, y = loginData.y;
+            long w = loginData.w, h = loginData.h;
+            Color color = new Color(loginData.colorRGB);
 
-    private static OnlinePlayer login(Connection unauthorized) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Message msg = unauthorized.readMessage();
-        if (msg.type != MessageType.LOGIN_DATA) {
-            unauthorized.writeMessage(Message.ErrorMessage("LOGIN NEEDED!"));
-            System.out.println("OnlinePlayer: " + unauthorized.getIp() + " failed to log in: different message type: " + msg.type);
+            System.out.println("OnlinePlayer: " + unauthorized.getIp() + ", nick: " + nickname + ", coords: {" + x + ", " + y + ", " + w + ", " + h + "}; color: " + color + " connected!");
+            OnlinePlayer player = new OnlinePlayer(unauthorized, nickname, Thread.currentThread());
+            player.player = new Player(nickname, x, y, w, h, color);
+            return player;
+        } catch (IOException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            closeConnection(unauthorized);
             return null;
         }
-
-        PayloadLoginData loginData = (PayloadLoginData) msg.payload;
-        String nickname = loginData.nickname;
-        double x = loginData.x, y = loginData.y;
-        long w = loginData.w, h = loginData.h;
-        Color color = new Color(loginData.colorRGB);
-
-        System.out.println("OnlinePlayer: " + unauthorized.getIp() + ", nick: " + nickname + ", coords: {" + x + ", " + y + ", " + w + ", " + h + "}; color: " + color + " connected!");
-        OnlinePlayer player = new OnlinePlayer(unauthorized, nickname, Thread.currentThread());
-        player.player = new Player(nickname, x, y, w, h, color);
-        return player;
     }
 
-    private static void communicationLoop(Connection client) throws InterruptedException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private static synchronized void disconnectPlayer(OnlinePlayer player) {
+        if (player == null)
+            System.out.println("Client to disconnect: wrong data(player == null)!");
+        else
+            try {
+                if (!game.getPlayers().containsKey(player.nickname)) {
+                    //player has been disconnected from another thread
+                    return;
+                }
+
+                System.out.println("Player " + player + " disconnected");
+
+                game.getPlayers().remove(player.player.name);
+                connectedPlayers.remove(player);
+
+                player.close();
+
+                player.playerThread.interrupt();
+                // not possible, because disconnect may be from game thread and it will interrupt game sending process
+                // Thread.currentThread().interrupt();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("FAILED TO DISCONNECT PLAYER: " + player);
+            }
+    }
+
+    private static void closeConnection(Connection connection) {
+        if (connection == null) {
+            System.out.println("Failed to close null collection!");
+        } else {
+            try {
+                System.out.println("Connection: " + connection + " closed!");
+                connection.close();
+                Thread.currentThread().interrupt();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static void communicationLoop(Connection client) {
         /* Login and construct a player */
         OnlinePlayer player = login(client);
         if (player == null)
@@ -117,7 +155,7 @@ public class Server {
             try {
                 final long REQUEST_TIMEOUT = 10;
                 double lastUpdate = 0;
-                while (true) {
+                while (!player.playerThread.isInterrupted()) {
                     if (timer.getGlobalTimeMillis() - lastUpdate > REQUEST_TIMEOUT) {
                         lastUpdate = timer.getGlobalTimeMillis();
                         Message msg = player.readMessage();
@@ -126,7 +164,7 @@ public class Server {
                 }
             } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
                      InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                disconnectPlayer(player);
             }
         }).start();
     }

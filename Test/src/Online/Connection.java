@@ -64,7 +64,10 @@ public class Connection implements AutoCloseable {
             writer.flush();
             msg.payload.writeExternal(writer);
             writer.flush();
-        } else throw new SocketException("Write failed: connection closed");
+        } else {
+            close();
+            throw new SocketException("Write failed: connection closed");
+        }
     }
 
     public Message readMessage() throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException {
@@ -80,7 +83,10 @@ public class Connection implements AutoCloseable {
                 throw new IllegalStateException("No payload functions associated with class: " + msg.type.payload);
             }
             return msg;
-        } else throw new SocketException("Write failed: connection closed");
+        } else {
+            close();
+            throw new SocketException("Write failed: connection closed");
+        }
     }
 
     @Override
@@ -94,8 +100,10 @@ public class Connection implements AutoCloseable {
         if (!closed) {
             closed = true;
             reader.close();
-            writer.close();
-            socket.close();
+            if (!socket.isClosed()) {
+                writer.close();
+                socket.close();
+            }
         }
     }
 

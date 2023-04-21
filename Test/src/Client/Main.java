@@ -86,7 +86,7 @@ public class Main {
             //подгружаем изображения и прогружаем игру
             loadImages();
             Random r = new Random(System.currentTimeMillis());
-            player = connect("127.0.0.1", 26780, 152.5, 35.6, 90, 60, new Color(r.nextInt()), "Livefish" + Math.random());
+            player = connect("192.168.0.106", 26780, 152.5, 35.6, 90, 60, new Color(r.nextInt()), "Livefish" + Math.random());
             initGame();
             game.add(player.player);
 
