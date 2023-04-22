@@ -1,6 +1,5 @@
 package Online;
 
-import Online.MessagePayloadObjects.PayloadFunctions;
 import Online.MessagePayloadObjects.PayloadTable;
 
 import java.io.Closeable;
@@ -76,7 +75,7 @@ public class Connection implements Closeable {
             Message msg = new Message();
             String messageHeader = reader.readUTF();
             msg.type = MessageType.valueOf(messageHeader);
-            PayloadFunctions functions = PayloadTable.payloadFunctionsMap.get(msg.type.payload);
+            ReadFunctions functions = PayloadTable.payloadFunctionsMap.get(msg.type.payload);
             if (functions != null) {
                 msg.payload = functions.constructor().newInstance();
                 functions.readMethod().invoke(msg.payload, reader);

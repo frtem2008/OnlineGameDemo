@@ -5,9 +5,9 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class Player extends GameObject implements Externalizable {
+public class Player extends GameObject {
     private double speedX, speedY;
     public Color color;
     public String name;
@@ -30,19 +30,18 @@ public class Player extends GameObject implements Externalizable {
 
 
     public Player() {
+        super();
+        type = GameObjectType.PLAYER;
         x = y = w = h = -1;
         name = null;
         color = null;
     }
 
     public Player(String name, double x, double y, long w, long h, Color color) {
+        super(x, y, w, h);
+        this.type = GameObjectType.PLAYER;
         this.name = name;
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
         this.color = color;
-        this.hitbox = new Rectangle((int) x, (int) y, (int) w, (int) h);
     }
 
     @Override
@@ -59,11 +58,14 @@ public class Player extends GameObject implements Externalizable {
                 '}';
     }
 
-    public void move(double deltaTime, Collection<GameObject> gameObjects) {
+
+    @Override
+    public void tick(double deltaTime, ConcurrentHashMap<String, GameObject> gameObjects) {
         x += speedX * deltaTime;
         y += speedY * deltaTime;
     }
 
+    @Override
     public void draw(Graphics g) {
         g.setColor(color);
         g.drawRect((int) x, (int) y, (int) w, (int) h);
@@ -73,14 +75,7 @@ public class Player extends GameObject implements Externalizable {
     public void writeExternal(ObjectOutput out) throws IOException {
         assert name != null;
         out.writeUTF(name);
-        out.writeDouble(x);
-        out.writeDouble(y);
-        out.writeLong(w);
-        out.writeLong(h);
-        out.writeLong(hitbox.x);
-        out.writeLong(hitbox.y);
-        out.writeLong(hitbox.width);
-        out.writeLong(hitbox.height);
+        super.writeExternal(out);
         out.writeLong(color.getRGB());
         out.writeDouble(speedX);
         out.writeDouble(speedY);
@@ -88,13 +83,9 @@ public class Player extends GameObject implements Externalizable {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException {
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         name = in.readUTF();
-        x = in.readDouble();
-        y = in.readDouble();
-        w = in.readLong();
-        h = in.readLong();
-        hitbox = new Rectangle((int) in.readLong(), (int) in.readLong(), (int) in.readLong(), (int) in.readLong());
+        super.readExternal(in);
         color = new Color((int) in.readLong());
         speedX = in.readDouble();
         speedY = in.readDouble();

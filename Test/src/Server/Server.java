@@ -1,5 +1,6 @@
 package Server;
 
+import GameObjects.Block;
 import GameObjects.Game;
 import GameObjects.Player;
 import Online.Connection;
@@ -32,6 +33,7 @@ public class Server {
             System.out.println("Waiting for clients to connect");
 
             game = new Game();
+            game.add(new Block(200, 300, 100, 50, Color.magenta));
             Thread gameSendingThread = new Thread(() -> {
                 double lastUpdate = 0;
                 final long GAME_SEND_TIMEOUT = 30;
@@ -106,14 +108,14 @@ public class Server {
             System.out.println("Client to disconnect: wrong data(player == null)!");
         else
             try {
-                if (!game.getPlayers().containsKey(player.nickname)) {
+                if (!game.containsPlayer(player.nickname)) {
                     //player has been disconnected from another thread
                     return;
                 }
 
                 System.out.println("Player " + player + " disconnected");
 
-                game.getPlayers().remove(player.player.name);
+                game.removePlayer(player.player.name);
                 connectedPlayers.remove(player);
 
                 player.close();
@@ -196,7 +198,7 @@ public class Server {
                 if (player.player.getSpeedX() == 0 && player.player.getSpeedY() == 0) {
                     if (player.moves) {
                         player.moves = false;
-                        //System.out.println("Player " + player.nickname + " moved from {" + player.oldX + "; " + player.oldY + "} to " + "{" + player.player.x + "; " + player.player.y + "}");
+                        System.out.println("Player " + player.nickname + " moved from {" + player.oldX + "; " + player.oldY + "} to " + "{" + player.player.x + "; " + player.player.y + "}");
                         player.oldX = player.player.x;
                         player.oldY = player.player.y;
                     }
@@ -205,7 +207,7 @@ public class Server {
                         player.moves = true;
                         player.oldX = player.player.x;
                         player.oldY = player.player.y;
-                        //System.out.println("Player " + player.nickname + " moves");
+                        System.out.println("Player " + player.nickname + " moves");
                     }
                 }
             }

@@ -56,7 +56,7 @@ public class OnlinePlayer implements Closeable {
     @Override
     public String toString() {
         return "OnlinePlayer{" +
-                ", nickname='" + nickname + '\'' +
+                "nickname='" + nickname + '\'' +
                 '}';
     }
 }
