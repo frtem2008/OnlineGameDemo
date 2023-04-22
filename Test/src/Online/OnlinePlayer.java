@@ -3,10 +3,11 @@ package Online;
 import GameObjects.Player;
 import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadSpeedXY;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-public class OnlinePlayer implements AutoCloseable {
+public class OnlinePlayer implements Closeable {
     private final Connection connection;
     public final Thread playerThread;
     public final String nickname;

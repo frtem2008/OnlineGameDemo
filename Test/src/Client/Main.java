@@ -11,10 +11,10 @@ import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadLoginDat
 import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameData;
 import Online.MessageType;
 import Online.OnlinePlayer;
+import Timer.Timer;
 import UserInput.Keyboard;
 import UserInput.Mouse;
 
-import Timer.Timer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferStrategy;

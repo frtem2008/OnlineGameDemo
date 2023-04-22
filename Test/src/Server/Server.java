@@ -119,7 +119,7 @@ public class Server {
                 player.close();
 
                 player.playerThread.interrupt();
-                // not possible, because disconnect may be from game thread and it will interrupt game sending process
+                // not possible, because disconnect may be from game thread, and it will interrupt game sending process
                 // Thread.currentThread().interrupt();
             } catch (IOException e) {
                 e.printStackTrace();

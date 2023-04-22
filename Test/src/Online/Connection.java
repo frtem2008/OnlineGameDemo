@@ -3,6 +3,7 @@ package Online;
 import Online.MessagePayloadObjects.PayloadFunctions;
 import Online.MessagePayloadObjects.PayloadTable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.Objects;
 
-public class Connection implements AutoCloseable {
+public class Connection implements Closeable {
     private final Socket socket;
     private final ObjectInputStream reader;
     private final ObjectOutputStream writer;

@@ -1,5 +1,6 @@
 package Online;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,7 +8,7 @@ import java.net.*;
 import java.util.Objects;
 
 
-public class ConnectionOld implements AutoCloseable {
+public class ConnectionOld implements Closeable {
     private final Socket socket;
 
     private final DataInputStream reader;
