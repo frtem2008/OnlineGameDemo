@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Block extends GameObject {
@@ -12,6 +13,11 @@ public class Block extends GameObject {
     public Block() {
         super();
         this.type = GameObjectType.BLOCK;
+    }
+
+    @Override
+    public boolean differsFrom(GameObject gameObject) {
+        return super.differsFrom(gameObject) || !Objects.equals(this.color, ((Block) gameObject).color);
     }
 
     public Block(double x, double y, double w, double h, Color color) {

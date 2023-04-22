@@ -8,14 +8,14 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Objects;
 
-public class PayloadGameData extends MessagePayload {
+public class PayloadGameTickData extends MessagePayload {
     public Game game;
     /* Something else to send */
 
-    public PayloadGameData() {
+    public PayloadGameTickData() {
     }
 
-    public PayloadGameData(Game game) {
+    public PayloadGameTickData(Game game) {
         this.game = game;
     }
 
@@ -33,7 +33,7 @@ public class PayloadGameData extends MessagePayload {
 
     @Override
     public String toString() {
-        return "PayloadGameData{" +
+        return "PayloadGameTickData{" +
                 "game=" + game +
                 '}';
     }
@@ -43,7 +43,7 @@ public class PayloadGameData extends MessagePayload {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PayloadGameData that = (PayloadGameData) o;
+        PayloadGameTickData that = (PayloadGameTickData) o;
 
         return Objects.equals(game, that.game);
     }

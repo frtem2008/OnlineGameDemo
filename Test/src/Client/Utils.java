@@ -49,7 +49,7 @@ public class Utils {
 
     //массив для огрубления
     public static short[] getPosterizePal() {
-        short ret[] = new short[256];
+        short[] ret = new short[256];
         for (int i = 0; i < 256; i++)
             ret[i] = (short) (i - (i % 32));
         return ret;

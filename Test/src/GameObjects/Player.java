@@ -1,10 +1,10 @@
 package GameObjects;
 
 import java.awt.*;
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Player extends GameObject {
@@ -89,5 +89,13 @@ public class Player extends GameObject {
         color = new Color((int) in.readLong());
         speedX = in.readDouble();
         speedY = in.readDouble();
+    }
+
+    @Override
+    public boolean differsFrom(GameObject gameObject) {
+        return super.differsFrom(gameObject) ||
+                this.speedX != ((Player) gameObject).speedX ||
+                this.speedY != ((Player) gameObject).speedY ||
+                !Objects.equals(this.color, ((Player) gameObject).color);
     }
 }

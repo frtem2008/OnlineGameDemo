@@ -32,7 +32,7 @@ public class OnlinePlayer implements Closeable {
         connection.writeMessage(msg);
     }
 
-    public void setSpeed(double speedX, double speedY) throws IOException {
+    public void setSpeed(double speedX, double speedY) {
         player.setSpeedX(speedX);
         player.setSpeedY(speedY);
     }
@@ -41,7 +41,7 @@ public class OnlinePlayer implements Closeable {
         connection.writeMessage(msg);
     }
 
-    public Message readMessage() throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public Message readMessage() throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return connection.readMessage();
     }
 

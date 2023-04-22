@@ -7,7 +7,7 @@ import java.util.HashMap;
 import static Online.ReadFunctions.fromClass;
 
 public class GameObjectFunctionsTable {
-    public static HashMap<Class<? extends GameObject>, ReadFunctions> gameObjectFunctionsMap = new HashMap<>();
+    public static final HashMap<Class<? extends GameObject>, ReadFunctions> gameObjectFunctionsMap = new HashMap<>();
 
     static {
         try {

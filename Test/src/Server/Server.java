@@ -8,7 +8,8 @@ import Online.Message;
 import Online.MessagePayloadObjects.PayloadStringData;
 import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadLoginData;
 import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadSpeedXY;
-import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameData;
+import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameFullData;
+import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameTickData;
 import Online.MessageType;
 import Online.OnlinePlayer;
 import Timer.Timer;
@@ -19,11 +20,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
     private static final Set<OnlinePlayer> connectedPlayers = ConcurrentHashMap.newKeySet();
     private static Game game;
     private static Timer timer;
+    private static final AtomicInteger gameSendTimes = new AtomicInteger(0);
 
     public static void main(String[] args) {
         try (ServerSocket server = new ServerSocket(26780)) {
@@ -37,29 +40,23 @@ public class Server {
             Thread gameSendingThread = new Thread(() -> {
                 double lastUpdate = 0;
                 final long GAME_SEND_TIMEOUT = 30;
-                int gameSentTimes = 0;
-                OnlinePlayer current = null;
                 while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        if (timer.getGlobalTimeMillis() - lastUpdate > GAME_SEND_TIMEOUT) {
-                            lastUpdate = timer.getGlobalTimeMillis();
-                            Message gameMessage = new Message(MessageType.GAME_DATA, new PayloadGameData(game));
-                            for (OnlinePlayer pl : connectedPlayers) {
-                                current = pl;
-                                pl.writeMessage(gameMessage);
-                            }
-                            if (gameSentTimes % 100 == 0) {
-                                System.out.println("Game sent " + gameSentTimes + " times");
-                                System.out.println("Server tps: " + timer.getTps());
-                            }
-                            gameSentTimes++;
-                        } else {
-                            timer.tick();
-                            game.tick(timer.getGlobalDeltaTimeMillis());
+                    if (timer.getGlobalTimeMillis() - lastUpdate > GAME_SEND_TIMEOUT) {
+                        lastUpdate = timer.getGlobalTimeMillis();
+                        Message gameMessage = new Message(MessageType.GAME_DATA_TICK, new PayloadGameTickData(game));
+                        sendMessageToAll(gameMessage);
+                        // all deletion info is sent, so we are now free to clear all marked game objects
+                        game.deleteMarkedGameObjects();
+                        if (gameSendTimes.get() % 100 == 0) {
+                            System.out.println("Game sent " + gameSendTimes.get() + " times");
+                            System.out.println("Server tps: " + timer.getTps());
                         }
-                    } catch (IOException e) {
-                        disconnectPlayer(current);
+                        gameSendTimes.incrementAndGet();
+                    } else {
+                        timer.tick();
+                        game.tick(timer.getGlobalDeltaTimeMillis());
                     }
+
                 }
             }, "Game updating and sending thread");
             gameSendingThread.start();
@@ -75,6 +72,18 @@ public class Server {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void sendMessageToAll(Message message) {
+        OnlinePlayer current = null;
+        try {
+            for (OnlinePlayer pl : connectedPlayers) {
+                current = pl;
+                pl.writeMessage(message);
+            }
+        } catch (IOException e) {
+            disconnectPlayer(current);
         }
     }
 
@@ -115,7 +124,7 @@ public class Server {
 
                 System.out.println("Player " + player + " disconnected");
 
-                game.removePlayer(player.player.name);
+                game.remove(player.player);
                 connectedPlayers.remove(player);
 
                 player.close();
@@ -152,6 +161,10 @@ public class Server {
         connectedPlayers.add(player);
         game.add(player.player);
 
+        //send full game to player
+        Message fullGameMessage = new Message(MessageType.GAME_DATA_FULL, new PayloadGameFullData(game));
+        sendMessageToAll(fullGameMessage);
+
         /* Request client data each REQUEST_TIMEOUT ms, otherwise predict */
         new Thread(() -> {
             try {
@@ -164,8 +177,7 @@ public class Server {
                         handleMessage(msg, player);
                     }
                 }
-            } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
-                     InstantiationException | IllegalAccessException e) {
+            } catch (IOException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 disconnectPlayer(player);
             }
         }).start();
@@ -184,6 +196,8 @@ public class Server {
                 String info = ((PayloadStringData) msg.payload).str;
                 if (info.equals("gamedump")) {
                     System.out.println("game = " + game);
+                    System.out.println("Total players: " + game.getPlayerCount());
+                    System.out.println("Total game objects: " + game.getGameObjectCount());
                 }
                 System.out.println("Received info from player: " + player.nickname + ": " + info);
             }
@@ -211,10 +225,11 @@ public class Server {
                     }
                 }
             }
-            case GAME_DATA -> {
+            case GAME_DATA_TICK -> {
                 player.writeMessage(Message.ErrorMessage("GAME DATA SENT!"));
                 System.out.println("OnlinePlayer: " + player.nickname + " sent game data!");
             }
+            default -> throw new IllegalStateException("Player: " + player + " sent unexpected data: " + msg.type);
         }
     }
 }

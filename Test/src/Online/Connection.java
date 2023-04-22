@@ -80,7 +80,7 @@ public class Connection implements Closeable {
                 msg.payload = functions.constructor().newInstance();
                 functions.readMethod().invoke(msg.payload, reader);
             } else {
-                throw new IllegalStateException("No payload functions associated with class: " + msg.type.payload);
+                throw new IllegalStateException("No payload functions associated with class: " + msg.type.payload + "\nCheck payload table, maybe you forgot to add functions there");
             }
             return msg;
         } else {

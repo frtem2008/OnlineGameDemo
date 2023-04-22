@@ -4,7 +4,7 @@ import javax.swing.*;
 
 public class Display {
     //окно
-    public static JFrame frame = new JFrame("Online game client");
+    public static final JFrame frame = new JFrame("Online game client");
 
     //дефолтные размеры окна
     public static int x = 300, y = 0, w = 400, h = 400;

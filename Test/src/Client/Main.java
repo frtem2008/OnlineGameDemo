@@ -8,7 +8,8 @@ import Online.Connection;
 import Online.Message;
 import Online.MessagePayloadObjects.PayloadStringData;
 import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadLoginData;
-import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameData;
+import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameFullData;
+import Online.MessagePayloadObjects.ServerMessagesPayloadObjects.PayloadGameTickData;
 import Online.MessageType;
 import Online.OnlinePlayer;
 import Timer.Timer;
@@ -88,7 +89,6 @@ public class Main {
             Random r = new Random(System.currentTimeMillis());
             player = connect("192.168.0.106", 26780, 152.5, 35.6, 90, 60, new Color(r.nextInt()), "Livefish" + Math.random());
             initGame();
-            game.add(player.player);
 
             //setFont();
             //привязываем слушатели
@@ -182,9 +182,9 @@ public class Main {
                 }
 
                 if (Keyboard.getH()) {
-                    Message gamedump = new Message(MessageType.INFO, new PayloadStringData("gamedump"));
+                    Message gameDump = new Message(MessageType.INFO, new PayloadStringData("gamedump"));
                     try {
-                        player.writeMessage(gamedump);
+                        player.writeMessage(gameDump);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -220,7 +220,7 @@ public class Main {
                     Message msg = player.readMessage();
                     messageQueue.add(msg);
                 }
-            } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
+            } catch (IOException | InvocationTargetException |
                      InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -293,10 +293,15 @@ public class Main {
                 player.writeMessage(Message.ErrorMessage("SPEED DATA SENT!"));
                 System.out.println("Server: sent speed data!");
             }
-            case GAME_DATA -> {
-                PayloadGameData gameData = (PayloadGameData) msg.payload;
-                game = gameData.game;
+            case GAME_DATA_TICK -> {
+                PayloadGameTickData gameData = (PayloadGameTickData) msg.payload;
+                game.resolveUpdate(gameData.game);
             }
+            case GAME_DATA_FULL -> {
+                PayloadGameFullData completeGameData = (PayloadGameFullData) msg.payload;
+                game = completeGameData.game;
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + msg.type);
         }
     }
 
