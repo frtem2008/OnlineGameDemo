@@ -43,20 +43,20 @@ public class Server {
                 while (!Thread.currentThread().isInterrupted()) {
                     if (timer.getGlobalTimeMillis() - lastUpdate > GAME_SEND_TIMEOUT) {
                         lastUpdate = timer.getGlobalTimeMillis();
-                        Message gameMessage = new Message(MessageType.GAME_DATA_TICK, new PayloadGameTickData(game));
-                        sendMessageToAll(gameMessage);
-                        // all deletion info is sent, so we are now free to clear all marked game objects
-                        game.deleteMarkedGameObjects();
-                        if (gameSendTimes.get() % 100 == 0) {
-                            System.out.println("Game sent " + gameSendTimes.get() + " times");
-                            System.out.println("Server tps: " + timer.getTps());
+                        if (game.getPlayerCount() != 0) {
+                            Message gameMessage = new Message(MessageType.GAME_DATA_TICK, new PayloadGameTickData(game));
+                            sendMessageToAll(gameMessage);
+                            // all deletion info is sent, so we are now free to clear all marked game objects
+                            game.deleteMarkedGameObjects();
+                            if (gameSendTimes.get() % 100 == 0) {
+                                System.out.println("Game sent " + gameSendTimes.get() + " times");
+                                System.out.println("Server tps: " + timer.getTps());
+                            }
+                            gameSendTimes.incrementAndGet();
                         }
-                        gameSendTimes.incrementAndGet();
-                    } else {
-                        timer.tick();
-                        game.tick(timer.getGlobalDeltaTimeMillis());
                     }
-
+                    timer.tick();
+                    game.tick(timer.getGlobalDeltaTimeMillis());
                 }
             }, "Game updating and sending thread");
             gameSendingThread.start();
