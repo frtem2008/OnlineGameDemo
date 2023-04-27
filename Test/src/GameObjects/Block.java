@@ -50,4 +50,23 @@ public class Block extends GameObject {
         super.readExternal(in);
         color = new Color((int) in.readLong());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Block block = (Block) o;
+
+        return Objects.equals(color, block.color);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        return result;
+    }
+
 }

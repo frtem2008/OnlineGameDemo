@@ -43,6 +43,7 @@ public class Server {
                 while (!Thread.currentThread().isInterrupted()) {
                     if (timer.getGlobalTimeMillis() - lastUpdate > GAME_SEND_TIMEOUT) {
                         lastUpdate = timer.getGlobalTimeMillis();
+
                         if (game.getPlayerCount() != 0) {
                             Message gameMessage = new Message(MessageType.GAME_DATA_TICK, new PayloadGameTickData(game));
                             sendMessageToAll(gameMessage);

@@ -92,10 +92,29 @@ public class Player extends GameObject {
     }
 
     @Override
-    public boolean differsFrom(GameObject gameObject) {
-        return super.differsFrom(gameObject) ||
-                this.speedX != ((Player) gameObject).speedX ||
-                this.speedY != ((Player) gameObject).speedY ||
-                !Objects.equals(this.color, ((Player) gameObject).color);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Player player = (Player) o;
+
+        if (Double.compare(player.speedX, speedX) != 0) return false;
+        if (Double.compare(player.speedY, speedY) != 0) return false;
+        if (!Objects.equals(color, player.color)) return false;
+        return Objects.equals(name, player.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        long temp;
+        temp = Double.doubleToLongBits(speedX);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(speedY);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
     }
 }

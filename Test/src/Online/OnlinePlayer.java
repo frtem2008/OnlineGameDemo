@@ -1,7 +1,6 @@
 package Online;
 
 import GameObjects.Player;
-import Online.MessagePayloadObjects.PlayerMessagesPayloadObjects.PayloadSpeedXY;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -25,16 +24,6 @@ public class OnlinePlayer implements Closeable {
         this.connection = connection;
         this.nickname = nickname;
         this.playerThread = clientThread;
-    }
-
-    public void sendSpeed() throws IOException {
-        Message msg = new Message(MessageType.SPEED_XY, new PayloadSpeedXY(player.getSpeedX(), player.getSpeedY()));
-        connection.writeMessage(msg);
-    }
-
-    public void setSpeed(double speedX, double speedY) {
-        player.setSpeedX(speedX);
-        player.setSpeedY(speedY);
     }
 
     public void writeMessage(Message msg) throws IOException {

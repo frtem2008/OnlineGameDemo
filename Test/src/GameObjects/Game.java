@@ -2,15 +2,16 @@ package GameObjects;
 
 import Online.ReadFunctions;
 
-import java.awt.*;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Game implements Externalizable {
+    private final CopyOnWriteArrayList<GameObject> allGameObjects;
     private final ConcurrentHashMap<String, GameObject> gameObjects;
     private final ConcurrentHashMap<String, GameObject> gameObjectsUpdatedLastTick;
     private final ConcurrentHashMap<String, GameObject> gameObjectsForcedToUpdate;
@@ -18,6 +19,8 @@ public class Game implements Externalizable {
     private final ConcurrentHashMap<String, Player> players;
 
     public Game() {
+        System.out.println("Game created");
+        this.allGameObjects = new CopyOnWriteArrayList<>();
         this.players = new ConcurrentHashMap<>();
         this.gameObjects = new ConcurrentHashMap<>();
         this.gameObjectsUpdatedLastTick = new ConcurrentHashMap<>();
@@ -34,6 +37,8 @@ public class Game implements Externalizable {
 
     public void add(GameObject gameObject) {
         gameObjects.put(gameObject.getUUID(), gameObject);
+        allGameObjects.add(gameObject);
+
         if (gameObject instanceof Player)
             players.put(((Player) gameObject).name, (Player) gameObject);
     }
@@ -47,30 +52,17 @@ public class Game implements Externalizable {
         gameObjectsToDelete.put(gameObject.getUUID(), gameObject);
     }
 
-    public void draw(Graphics g) {
-        for (GameObject gameObject : gameObjects.values()) {
-            gameObject.draw(g);
-        }
-    }
-
-    public void alwaysUpdate(GameObject gameObject, boolean on) {
-        if (on)
-            gameObjectsForcedToUpdate.put(gameObject.getUUID(), gameObject);
-        else if (gameObjectsForcedToUpdate.containsKey(gameObject.getUUID()))
-            gameObjectsForcedToUpdate.remove(gameObject.getUUID());
-        else
-            throw new IllegalStateException("Unable unforce updates for " + gameObject + ": update forcing was off");
-    }
-
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void tick(double deltaTime) {
-        for (GameObject gameObject : gameObjects.values()) {
+        for (int i = 0; i < allGameObjects.size(); i++) {
+            GameObject gameObject = allGameObjects.get(i);
             if (gameObject.type == GameObjectType.UNDEFINED)
                 throw new IllegalStateException("Added game object with undefined type to game: " + gameObject);
 
-            GameObject old = gameObject.clone();
+            int oldHash = gameObject.hashCode();
             gameObject.tick(deltaTime, gameObjects);
 
-            if (gameObject.differsFrom(old))
+            if (oldHash != gameObject.hashCode())
                 gameObjectsUpdatedLastTick.put(gameObject.getUUID(), gameObject);
             else
                 gameObjectsUpdatedLastTick.remove(gameObject.getUUID());
@@ -80,6 +72,7 @@ public class Game implements Externalizable {
     private void deleteGameObject(GameObject toDelete) {
         toDelete.markedForDelete = true;
         gameObjects.remove(toDelete.getUUID());
+        allGameObjects.remove(toDelete);
         if (toDelete instanceof Player)
             players.remove(((Player) toDelete).name);
     }
@@ -92,19 +85,6 @@ public class Game implements Externalizable {
         return gameObjects.size();
     }
 
-    public void resolveUpdate(Game newGame) {
-        // remove all deleted game objects
-        // add new and update existing game objects
-        for (GameObject newGameObject : newGame.gameObjects.values()) {
-            if (newGameObject.markedForDelete)
-                deleteGameObject(newGameObject);
-            else
-                gameObjects.put(newGameObject.getUUID(), newGameObject);
-        }
-        // instantly delete all unneeded game objects
-        deleteMarkedGameObjects();
-    }
-
     @Override
     public String toString() {
         return "Game{" +
@@ -113,7 +93,7 @@ public class Game implements Externalizable {
                 '}';
     }
 
-    private void sendObjectMap(ConcurrentHashMap<String, GameObject> gameObjects, ObjectOutput out) throws IOException {
+    private void sendObjectMap(ConcurrentHashMap<String, ? extends GameObject> gameObjects, ObjectOutput out) throws IOException {
         for (GameObject gameObject : gameObjects.values()) {
             out.writeUTF(gameObject.type.toString());
             gameObject.writeExternal(out);
