@@ -76,7 +76,11 @@ public class Server {
         }
     }
 
-    private static void sendMessageToAll(Message message) {
+    public static Set<OnlinePlayer> getConnectedPlayers() {
+        return connectedPlayers;
+    }
+
+    public static void sendMessageToAll(Message message) {
         OnlinePlayer current = null;
         try {
             for (OnlinePlayer pl : connectedPlayers) {
@@ -113,7 +117,15 @@ public class Server {
         }
     }
 
-    private static synchronized void disconnectPlayer(OnlinePlayer player) {
+    public static Game getGame() {
+        return game;
+    }
+
+    public static Timer getTimer() {
+        return timer;
+    }
+
+    public static synchronized void disconnectPlayer(OnlinePlayer player) {
         if (player == null)
             System.out.println("Client to disconnect: wrong data(player == null)!");
         else
